@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-getl3_simple.py – multi-threaded NEXRAD Level III fetcher from AWS,
-                  keeps MAX_FILES per site/product, serves via Flask.
+getL3.py – multi-threaded NEXRAD Level III fetcher from AWS,
+                  keeps MAX_FILES per site/product.
 Author: Garrett Helms (@WxGareBear)
 """
 # Make Sure to start a localhost server with python on the directory "level3_service"
@@ -19,8 +19,7 @@ from botocore.client import Config
 from flask import Flask, send_from_directory
 
 # === CONFIG Sites To Poll, Only Nexrad Currently. ===
-SITES         = ["DLH","MPX","MQT","GRB","ARX","MKX","LOT","DVN","GRR","IWX","ILX","DTX","IND","SLX",
-                "VWX"]
+SITES         = ["TLX", "GSP"] # 3 Letter Site Name (TDWR's not supported yet.) Knock off the leading K, P, or T of the Radar Callsign.
 
 BUCKET        = "unidata-nexrad-level3"
 MAX_FILES     = 10
@@ -28,8 +27,11 @@ POLL_INTERVAL = 30  # seconds
 ROOT          = Path("level3_service")
 
 # Fix worker count (CPU Bound Usage)
+# Adjust to your CPU thread count and the programs performance.
 WORKER_COUNT  = 6
 
+# I only recommend changing these if you know what you are doing.
+# I may release documentation on products soon with help from the ROC.
 PRODUCT_CODES = sorted({
     'DAA', 'DHR', 'DOD', 'DPR', 'DSD', 'DSP', 'DTA', 'DU3', 'DU6', 'DVL',
     'EET', 'GSM', 'HHC',
@@ -80,7 +82,7 @@ PRODUCT_CODES = sorted({
 s3 = boto3.client("s3", config=Config(signature_version=botocore.UNSIGNED))
 
 app = Flask(__name__, static_folder=str(ROOT), static_url_path='')
-
+# Flask isn't quite fully ready yet.
 
 def dt_from_key(key: str) -> datetime:
     tail = key.split("_", 2)[-1]
